@@ -46,16 +46,15 @@ namespace SlidingPuzzle
             return _pieceData.IsEmptySpace;
         }
 
-        public void UpdatePosition(Vector2 position)
+        public void UpdatePosition(Vector3 position)
         {
-            _piecePosition = position;
+            _piece.transform.position = position;
             _pieceData.Row = (int)(position.x - 0.5f);
             _pieceData.Col = (int)(position.y - 0.5f);
         }
 
         public int GetCurrentIndex()
         {
-            Debug.Log(this.name + ": " + _pieceData.Row + " - " + _pieceData.Col);
             return _pieceData.Row * _height + _pieceData.Col;
         }
 

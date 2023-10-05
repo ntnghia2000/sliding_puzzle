@@ -32,7 +32,7 @@ namespace SlidingPuzzle
 
             InstantiatePieces();
 
-            //StartCoroutine(Shuffle(1.0f));
+            StartCoroutine(Shuffle(1.0f));
         }
 
         private void Update()
@@ -43,7 +43,7 @@ namespace SlidingPuzzle
 
                 if (CanSwap(hit.transform.position, _emptyPiece.transform.position))
                 {
-                    Vector2 tempPosition = _emptyPiece.transform.position;
+                    Vector3 tempPosition = _emptyPiece.transform.position;
                     _emptyPiece.transform.position = hit.transform.position;
                     hit.transform.position = tempPosition;
 
@@ -111,16 +111,50 @@ namespace SlidingPuzzle
         {
             yield return new WaitForSeconds(delayTime);
 
-            int index = _piecesList.Count;
-            System.Random rng = new System.Random();
-
-            while (index > 1)
+            for (int x = 0; x < _pieces.GetLength(0); x++)
             {
-                index--;
-                int k = rng.Next(index + 1);
-                Piece value = _piecesList[k];
-                _piecesList[k] = _piecesList[index];
-                _piecesList[index] = value;
+                for (int y = 0; y < _pieces.GetLength(1); y++)
+                {
+                    int indexX = 0;
+                    int indexY = 0;
+
+                    GetRandomIndexes(x, y, ref indexX, ref indexY);
+
+                    if (x == _pieces.GetLength(0) - 1 && y == _pieces.GetLength(1) - 1 ||
+                        indexX == _pieces.GetLength(0) - 1 && indexY == _pieces.GetLength(1) - 1)
+                    {
+                        GetRandomIndexes(x, y, ref indexX, ref indexY);
+                    }
+                    else
+                    {
+                        Vector3 tempPosition = _pieces[x, y].transform.position;
+                        Vector3 tempPosition1 = _pieces[indexX, indexY].transform.position;
+                        _pieces[x, y].UpdatePosition(tempPosition1);
+                        _pieces[indexX, indexY].UpdatePosition(tempPosition);
+                        SwapPiece(ref _pieces[x, y], ref _pieces[indexX, indexY]);
+                    }
+                }
+            }
+            
+        }
+
+        private void GetRandomIndexes(int x, int y, ref int indexX, ref int indexY)
+        {
+            if (x + 1 >= _pieces.GetLength(0))
+            {
+                indexX = 0;
+            }
+            else
+            {
+                indexX = x + 1;
+            }
+            if (y - 1 < 0)
+            {
+                indexY = _pieces.GetLength(1) - 1;
+            }
+            else
+            {
+                indexY = y - 1;
             }
         }
 
