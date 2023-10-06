@@ -1272,8 +1272,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _counter: {fileID: 1587370362}
-  _minute: 0
-  _second: 10
+  _minute: 2
+  _second: 0
 --- !u!1 &1069342778
 GameObject:
   m_ObjectHideFlags: 0
