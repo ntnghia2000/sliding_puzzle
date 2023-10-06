@@ -1,9 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEngine.GraphicsBuffer;
 
 namespace SlidingPuzzle
 {
@@ -15,6 +10,8 @@ namespace SlidingPuzzle
 
     public class Piece : MonoBehaviour
     {
+        private readonly float ADDITION_POSITION = 0.5f;
+
         [SerializeField] private GameObject _piece;
         [SerializeField] private SpriteRenderer _pieceRenderer;
 
@@ -49,8 +46,8 @@ namespace SlidingPuzzle
         public void UpdatePosition(Vector3 position)
         {
             _piece.transform.position = position;
-            _pieceData.Row = (int)(position.x - 0.5f);
-            _pieceData.Col = (int)(position.y - 0.5f);
+            _pieceData.Row = (int)(position.x - ADDITION_POSITION);
+            _pieceData.Col = (int)(position.y - ADDITION_POSITION);
         }
 
         public int GetCurrentIndex()
