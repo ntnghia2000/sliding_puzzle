@@ -20,7 +20,7 @@ namespace SlidingPuzzle
         private void Awake()
         {
             HideGateway();
-            CreateButtonListener();
+            //CreateButtonListener();
             _puzzleManager.DisplayFinishMessage += DisplayFinishGateway;
         }
 
@@ -32,17 +32,17 @@ namespace SlidingPuzzle
             _winBack.onClick.AddListener(BackToMainMenu);
         }
 
-        private void BackToMainMenu()
+        public void BackToMainMenu()
         {
             ScenesManager.Instance.BackToMainMenu();
         }
         
-        private void ReloadScene()
+        public void ReloadScene()
         {
             ScenesManager.Instance.ReloadScene();
         }
-        
-        private void LoadNextScene()
+
+        public void LoadNextScene()
         {
             if(SceneManager.GetActiveScene().buildIndex != 2)
             {

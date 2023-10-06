@@ -160,13 +160,16 @@ namespace SlidingPuzzle
         {
             if (_isWinning)
             {
+                _canPlay = false;
                 StartCoroutine(DisplayMessage(DISPLAY_GATEWAY_DELAY_TIME));
                 _timeManager.StopCountDown();
             }
 
             if(_timeManager.IsTimeOut)
             {
+                _canPlay = false;
                 StartCoroutine(DisplayMessage(DISPLAY_GATEWAY_DELAY_TIME));
+                _timeManager.StopCountDown();
             }
 
             if(_canPlay)

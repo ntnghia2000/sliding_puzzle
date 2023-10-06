@@ -29,8 +29,9 @@ namespace SlidingPuzzle
 
                 if(_minute < 0)
                 {
+                    _minute = 0;
+                    _second = 0;
                     _isTimeOut = true;
-                    StopCountDown();
                 }
 
                 _second = MAX_SECOND;
@@ -42,6 +43,8 @@ namespace SlidingPuzzle
 
         public void StopCountDown()
         {
+            _minute = 0;
+            _second = 0;
             CancelInvoke(nameof(CountDown));
         }
         
