@@ -8,7 +8,7 @@ namespace SlidingPuzzle
     {
         public event DisplayFinishMessageCallback DisplayFinishMessage;
 
-        private readonly float REVIEW_TIME_BEFORE_SHUFFLE = 0.5f;
+        private readonly float DELAY_TIME_BEFORE_SHUFFLING = 0.5f;
         private readonly float UNITY_REC_SIZE = 1.0f;
         private readonly float ADDITION_POSITION = 0.5f;
         private readonly float DISPLAY_GATEWAY_DELAY_TIME = 0.5f;
@@ -60,16 +60,11 @@ namespace SlidingPuzzle
             {
                 for (int y = 0; y < _pieces.GetLength(1); y++)
                 {
-                    _pieces[x, y] = Instantiate(_piecePrefab, GetTilePosition(x, y), Quaternion.identity);
-                    _pieces[x, y].name = $"Piece {x * _height + y}";
-
-                    Rect rect = new Rect(x * pieceWidth, y * pieceHeight, pieceWidth, pieceHeight);
-                    Sprite pieceSprite = Sprite.Create(sourceTexture, rect, new Vector2(0.5f, 0.5f));
+                    Sprite pieceSprite = InstantiatePiece(x, y, pieceWidth, pieceHeight, sourceTexture);
 
                     if (x == _pieces.GetLength(0) - 1 && y == _pieces.GetLength(1) - 1)
                     {
                         _pieces[x, y].InitPieceData(x, y, pieceSprite, true, _height);
-                        _pieces[x, y].gameObject.SetActive(false);
                         _emptyPiece = Instantiate(_emptySpace, GetTilePosition(x, y), Quaternion.identity);
                     }
                     else
@@ -81,12 +76,21 @@ namespace SlidingPuzzle
             }
         }
 
+        private Sprite InstantiatePiece(int x, int y, int pieceWidth, int pieceHeight, Texture2D texture)
+        {
+            _pieces[x, y] = Instantiate(_piecePrefab, GetTilePosition(x, y), Quaternion.identity);
+            _pieces[x, y].name = $"Piece {x * _height + y}";
+
+            Rect rect = new Rect(x * pieceWidth, y * pieceHeight, pieceWidth, pieceHeight);
+            return Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f));
+        }
+
         public void StartShuffling()
         {
             if(!_isShuffled)
             {
                 _isShuffled = true;
-                StartCoroutine(Shuffle(REVIEW_TIME_BEFORE_SHUFFLE));
+                StartCoroutine(Shuffle(DELAY_TIME_BEFORE_SHUFFLING));
                 _canPlay = true;
             }
         }    
@@ -201,8 +205,14 @@ namespace SlidingPuzzle
 
                     if (tileX >= 0 && tileX < _pieces.GetLength(0) && tileY >= 0 && tileY < _pieces.GetLength(1))
                     {
+                        Debug.Log("hit piece: " + _pieces[tileX, tileY].GetPieceData().Row + " - " + _pieces[tileX, tileY].GetPieceData().Col);
+                        Debug.Log("target piece: " + _pieces[_targetX, _targetY].GetPieceData().Row + " - " + _pieces[_targetX, _targetY].GetPieceData().Col);
                         _pieces[tileX, tileY].UpdatePosition(tempPosition);
+                        Debug.Log("hit piece after update: " + _pieces[tileX, tileY].GetPieceData().Row + " - " + _pieces[tileX, tileY].GetPieceData().Col);
+                        Debug.Log("target piece after update: " + _pieces[_targetX, _targetY].GetPieceData().Row + " - " + _pieces[_targetX, _targetY].GetPieceData().Col);
                         SwapPieces(ref _pieces[tileX, tileY], ref _pieces[_targetX, _targetY]);
+                        Debug.Log("hit piece after swap: " + _pieces[tileX, tileY].GetPieceData().Row + " - " + _pieces[tileX, tileY].GetPieceData().Col);
+                        Debug.Log("target piece after swap: " + _pieces[_targetX, _targetY].GetPieceData().Row + " - " + _pieces[_targetX, _targetY].GetPieceData().Col);
                     }
                 }
 

@@ -16,14 +16,8 @@ namespace SlidingPuzzle
         [SerializeField] private SpriteRenderer _pieceRenderer;
 
         private PieceData _pieceData;
-        private Vector3 _piecePosition;
         private int _pieceIndex;
         private int _height;
-
-        private void Start()
-        {
-            _piecePosition = _piece.transform.position;
-        }
 
         public void InitPieceData(int row, int col, Sprite sprite, bool isEmptySpace, int height)
         {
@@ -31,6 +25,7 @@ namespace SlidingPuzzle
             _pieceRenderer.sprite = sprite;
             _height = height;
             _pieceIndex = (row * height + col);
+            gameObject.SetActive(!isEmptySpace);
         }
         
         public PieceData GetPieceData() 
