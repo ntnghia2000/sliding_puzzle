@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace SlidingPuzzle
 {
@@ -25,7 +26,7 @@ namespace SlidingPuzzle
 
         private Piece[,] _pieces;
         private List<Piece> _piecesList;
-        private GameObject _emptyPiece;
+        private Piece _emptyPiece;
         private float _tileSize;
         private bool _isWinning = false;
         private int _targetX;
@@ -56,32 +57,34 @@ namespace SlidingPuzzle
             int pieceWidth = sourceTexture.width / _width;
             int pieceHeight = sourceTexture.height / _height;
 
-            for (int x = 0; x < _pieces.GetLength(0); x++)
+            for (int col = 0; col < _pieces.GetLength(0); col++)
             {
-                for (int y = 0; y < _pieces.GetLength(1); y++)
+                for (int row = 0; row < _pieces.GetLength(1); row++)
                 {
-                    Sprite pieceSprite = InstantiatePiece(x, y, pieceWidth, pieceHeight, sourceTexture);
+                    Sprite pieceSprite = InstantiatePiece(col, row, pieceWidth, pieceHeight, sourceTexture);
 
-                    if (x == _pieces.GetLength(0) - 1 && y == _pieces.GetLength(1) - 1)
+                    if (col == _pieces.GetLength(0) - 1 && row == _pieces.GetLength(1) - 1)
                     {
-                        _pieces[x, y].InitPieceData(x, y, pieceSprite, true, _height);
-                        _emptyPiece = Instantiate(_emptySpace, GetTilePosition(x, y), Quaternion.identity);
+                        _pieces[col, row].InitPieceData(col, row, pieceSprite, true, _height);
+                        _emptyPiece = Instantiate(_pieces[col, row]);
+                        _emptyPiece.InitPieceData(col, row, pieceSprite, true, _height);
+                        _emptyPiece.name = "Empty Piece";
                     }
                     else
                     {
-                        _pieces[x, y].InitPieceData(x, y, pieceSprite, false, _height);
-                        _piecesList.Add(_pieces[x, y]);
+                        _pieces[col, row].InitPieceData(col, row, pieceSprite, false, _height);
+                        _piecesList.Add(_pieces[col, row]);
                     }
                 }
             }
         }
 
-        private Sprite InstantiatePiece(int x, int y, int pieceWidth, int pieceHeight, Texture2D texture)
+        private Sprite InstantiatePiece(int col, int row, int pieceWidth, int pieceHeight, Texture2D texture)
         {
-            _pieces[x, y] = Instantiate(_piecePrefab, GetTilePosition(x, y), Quaternion.identity);
-            _pieces[x, y].name = $"Piece {x * _height + y}";
+            _pieces[col, row] = Instantiate(_piecePrefab, GetTilePositionOnGrid(col, row), Quaternion.identity);
+            _pieces[col, row].name = $"Piece {col * _height + row}";
 
-            Rect rect = new Rect(x * pieceWidth, y * pieceHeight, pieceWidth, pieceHeight);
+            Rect rect = new Rect(col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight);
             return Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f));
         }
 
@@ -103,27 +106,21 @@ namespace SlidingPuzzle
             {
                 for (int row = 0; row < _pieces.GetLength(1); row++)
                 {
-                    int indexX = 0;
-                    int indexY = 0;
+                    int randomCol = 0;
+                    int randomRow = 0;
 
-                    RandomIndexes(col, row, ref indexX, ref indexY);
-
-                    if (IsLastIndex(col, row, indexX, indexY))
+                    if (!IsLastIndex(col, row))
                     {
-                        RandomIndexes(col, row, ref indexX, ref indexY);
-                    }
-                    else
-                    {
-                        ShufflePieces(col, row, indexX, indexY);
+                        RandomIndexes(col, row, ref randomCol, ref randomRow);
+                        ShufflePieces(col, row, randomCol, randomRow);
                     }
                 }
             }
         }
 
-        private bool IsLastIndex(int col, int row, int randomIndexX, int randomIndexY)
+        private bool IsLastIndex(int col, int row)
         {
-            if(col == _pieces.GetLength(0) - 1 && row == _pieces.GetLength(1) - 1 ||
-            randomIndexX == _pieces.GetLength(0) - 1 && randomIndexY == _pieces.GetLength(1) - 1)
+            if(col == _pieces.GetLength(0) - 1 && row == _pieces.GetLength(1) - 1)
             {
                 return true;
             }
@@ -131,34 +128,27 @@ namespace SlidingPuzzle
             return false;
         }    
 
-        private void RandomIndexes(int col, int row, ref int randomIndexX, ref int randomIndexY)
+        private Vector2 RandomIndexes(int col, int row, ref int randomCol, ref int randomRow)
         {
-            if (col + 1 >= _pieces.GetLength(0))
+            randomCol = col + 1 >= _pieces.GetLength(0) ? 0 : col + 1;
+            randomRow = row - 1 < 0 ? _pieces.GetLength(1) - 1 : row - 1;
+
+            if(!IsLastIndex(randomCol, randomRow))
             {
-                randomIndexX = 0;
+                return new Vector2(randomCol, randomRow);
             }
-            else
-            {
-                randomIndexX = col + 1;
-            }
-            if (row - 1 < 0)
-            {
-                randomIndexY = _pieces.GetLength(1) - 1;
-            }
-            else
-            {
-                randomIndexY = row - 1;
-            }
+
+            return RandomIndexes(col - 1, row + 1, ref randomCol, ref randomRow);
         }
 
-        private void ShufflePieces(int col, int row, int randomIndexX, int randomIndexY)
+        private void ShufflePieces(int col, int row, int randomCol, int randomRow)
         {
-            Vector3 tempPosition = _pieces[col, row].transform.position;
-            Vector3 tempPosition1 = _pieces[randomIndexX, randomIndexY].transform.position;
-            _pieces[col, row].UpdatePosition(tempPosition1);
-            _pieces[randomIndexX, randomIndexY].UpdatePosition(tempPosition);
-            SwapPieces(ref _pieces[col, row], ref _pieces[randomIndexX, randomIndexY]);
-        }    
+            Vector3 currentPiecePos = _pieces[col, row].transform.position;
+            Vector3 randomPiecePos = _pieces[randomCol, randomRow].transform.position;
+
+            _pieces[col, row].SwapPieceByPosition(randomPiecePos, randomCol, randomRow);
+            _pieces[randomCol, randomRow].SwapPieceByPosition(currentPiecePos, col, row);
+        }
 
         private void Update()
         {
@@ -196,23 +186,17 @@ namespace SlidingPuzzle
 
                 if (CanSwap(hit.transform.position, _emptyPiece.transform.position))
                 {
-                    Vector3 tempPosition = _emptyPiece.transform.position;
-                    _emptyPiece.transform.position = hit.transform.position;
-                    hit.transform.position = tempPosition;
+                    Vector3 emptyPiecePosition = _emptyPiece.transform.position;
+                    Vector3 hitPiecePosition = hit.transform.position;
 
-                    int tileX = Mathf.FloorToInt((hit.point.x - transform.position.x) / UNITY_REC_SIZE);
-                    int tileY = Mathf.FloorToInt((hit.point.y - transform.position.y) / UNITY_REC_SIZE);
+                    Piece hitPiece = hit.transform.GetComponent<Piece>();
+                    int hitCol = hitPiece.GetPieceData().Col;
+                    int hitRow = hitPiece.GetPieceData().Row;
 
-                    if (tileX >= 0 && tileX < _pieces.GetLength(0) && tileY >= 0 && tileY < _pieces.GetLength(1))
+                    if (hitCol >= 0 && hitCol < _pieces.GetLength(0) && hitRow >= 0 && hitRow < _pieces.GetLength(1))
                     {
-                        Debug.Log("hit piece: " + _pieces[tileX, tileY].GetPieceData().Row + " - " + _pieces[tileX, tileY].GetPieceData().Col);
-                        Debug.Log("target piece: " + _pieces[_targetX, _targetY].GetPieceData().Row + " - " + _pieces[_targetX, _targetY].GetPieceData().Col);
-                        _pieces[tileX, tileY].UpdatePosition(tempPosition);
-                        Debug.Log("hit piece after update: " + _pieces[tileX, tileY].GetPieceData().Row + " - " + _pieces[tileX, tileY].GetPieceData().Col);
-                        Debug.Log("target piece after update: " + _pieces[_targetX, _targetY].GetPieceData().Row + " - " + _pieces[_targetX, _targetY].GetPieceData().Col);
-                        SwapPieces(ref _pieces[tileX, tileY], ref _pieces[_targetX, _targetY]);
-                        Debug.Log("hit piece after swap: " + _pieces[tileX, tileY].GetPieceData().Row + " - " + _pieces[tileX, tileY].GetPieceData().Col);
-                        Debug.Log("target piece after swap: " + _pieces[_targetX, _targetY].GetPieceData().Row + " - " + _pieces[_targetX, _targetY].GetPieceData().Col);
+                        hitPiece.SwapPieceByPosition(emptyPiecePosition, _emptyPiece.GetPieceData().Col, _emptyPiece.GetPieceData().Row);
+                        _emptyPiece.SwapPieceByPosition(hitPiecePosition, hitCol, hitRow);
                     }
                 }
 
@@ -220,9 +204,9 @@ namespace SlidingPuzzle
             }
         }    
 
-        private Vector3 GetTilePosition(int width, int heigth)
+        private Vector3 GetTilePositionOnGrid(int col, int row)
         {
-            return new Vector3((width * _tileSize) + ADDITION_POSITION, (heigth * _tileSize) + ADDITION_POSITION, 0);
+            return new Vector3((col * _tileSize) + ADDITION_POSITION, (row * _tileSize) + ADDITION_POSITION, 0);
         }
 
         private bool CheckWinCondition()
@@ -236,14 +220,7 @@ namespace SlidingPuzzle
             }
 
             return true;
-        }
-
-        private void SwapPieces(ref Piece movingPiece, ref Piece target)
-        {
-            Piece temp = target;
-            target = movingPiece;
-            movingPiece = temp;
-        }    
+        }   
 
         private bool CanSwap(Vector3 piece, Vector3 target)
         {

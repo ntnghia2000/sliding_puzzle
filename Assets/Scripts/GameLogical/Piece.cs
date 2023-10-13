@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace SlidingPuzzle
@@ -15,16 +16,16 @@ namespace SlidingPuzzle
         [SerializeField] private GameObject _piece;
         [SerializeField] private SpriteRenderer _pieceRenderer;
 
-        private PieceData _pieceData;
-        private int _pieceIndex;
+        [SerializeField] private PieceData _pieceData;
+        [SerializeField] private int _pieceIndex;
         private int _height;
 
-        public void InitPieceData(int row, int col, Sprite sprite, bool isEmptySpace, int height)
+        public void InitPieceData(int col, int row, Sprite sprite, bool isEmptySpace, int height)
         {
-            _pieceData = new PieceData(row, col, isEmptySpace);
+            _pieceData = new PieceData(col, row, isEmptySpace);
             _pieceRenderer.sprite = sprite;
             _height = height;
-            _pieceIndex = (row * height + col);
+            _pieceIndex = (col * height + row);
             gameObject.SetActive(!isEmptySpace);
         }
         
@@ -38,32 +39,33 @@ namespace SlidingPuzzle
             return _pieceData.IsEmptySpace;
         }
 
-        public void UpdatePosition(Vector3 position)
+        public void SwapPieceByPosition(Vector3 position, int col, int row)
         {
             _piece.transform.position = position;
-            _pieceData.Row = (int)(position.x - ADDITION_POSITION);
-            _pieceData.Col = (int)(position.y - ADDITION_POSITION);
+            _pieceData.Col = col;
+            _pieceData.Row = row;
         }
 
         public int GetCurrentIndex()
         {
-            return _pieceData.Row * _height + _pieceData.Col;
+            return _pieceData.Col * _height + _pieceData.Row;
         }
 
         public int PieceIndex
         { get { return _pieceIndex; } }
     }
 
+    [Serializable]
     public class PieceData: IPiece
     {
-        private int _row;
-        private int _col;
+        [SerializeField] private int _row;
+        [SerializeField] private int _col;
         private bool _isEmptySpace;
 
-        public PieceData(int row, int col, bool isEmptySpace)
+        public PieceData(int col, int row, bool isEmptySpace)
         {
-            Row = row; 
             Col = col;
+            Row = row;
             _isEmptySpace = isEmptySpace;
         }
 

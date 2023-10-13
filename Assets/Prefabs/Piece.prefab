@@ -357,7 +357,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _piece: {fileID: 7114886150497424040}
   _pieceRenderer: {fileID: 3459054426347905914}
-  _tileIndex: {fileID: 7430365400235320770}
 --- !u!61 &2117600021573917239
 BoxCollider2D:
   m_ObjectHideFlags: 0
